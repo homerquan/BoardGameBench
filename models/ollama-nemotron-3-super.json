@@ -10,7 +10,7 @@
           "name": "Nemotron 3 Super (Ollama)",
           "model": "nemotron-3-super:latest",
           "rate_limit_rpm": 120,
-          "timeout_seconds": 900,
+          "timeout_seconds": 240,
           "extra_body": {
             "max_tokens": 64
           }

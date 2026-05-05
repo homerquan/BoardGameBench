@@ -117,7 +117,17 @@ class BenchmarkRunner:
                         factory.spec.oracle_depth,
                     )
                 except LLMRequestError as error:
-                    raise BenchmarkLLMCallError(f"Error calling LLM in {factory.spec.name}: {error}") from error
+                    return forfeit_result(
+                        factory,
+                        round_number,
+                        llm_first,
+                        llm_side,
+                        engine_side,
+                        moves,
+                        state,
+                        str(error),
+                        "llm_request_error",
+                    )
                 except LLMMoveError as error:
                     return forfeit_result(factory, round_number, llm_first, llm_side, engine_side, moves, state, str(error))
                 state = state.apply_move(move)
@@ -177,8 +187,18 @@ def move_record(player: str, side: int, move: Move, response: str | None = None,
     return record
 
 
-def forfeit_result(factory, round_number, llm_first, llm_side, engine_side, moves, state, error):
-    score = score_result("engine_win", len(moves), factory.spec.max_moves, "llm_forfeit")
+def forfeit_result(
+    factory,
+    round_number,
+    llm_first,
+    llm_side,
+    engine_side,
+    moves,
+    state,
+    error,
+    termination_reason="llm_forfeit",
+):
+    score = score_result("engine_win", len(moves), factory.spec.max_moves, termination_reason)
     return {
         "game_id": factory.spec.game_id,
         "game_name": factory.spec.name,
@@ -188,7 +208,7 @@ def forfeit_result(factory, round_number, llm_first, llm_side, engine_side, move
         "engine_side": side_name(engine_side),
         "outcome": "engine_win",
         "winner": side_name(engine_side),
-        "termination_reason": "llm_forfeit",
+        "termination_reason": termination_reason,
         "error": error,
         "move_count": len(moves),
         "max_moves": factory.spec.max_moves,
@@ -204,9 +224,9 @@ def score_result(outcome: str, move_count: int, max_moves: int, termination_reas
     survival_ratio = min(1.0, move_count / max_moves)
     speed_ratio = 1.0 - min(1.0, max(0, move_count - 1) / max(1, max_moves - 1))
 
-    if termination_reason == "llm_forfeit":
+    if termination_reason in {"llm_forfeit", "llm_request_error"}:
         points = 0.0
-        formula = "forfeit"
+        formula = termination_reason
     elif outcome == "llm_win":
         points = 0.75 + 0.25 * speed_ratio
         formula = "win_speed_bonus"
@@ -246,7 +266,7 @@ def update_summary(summary: BenchmarkSummary, result: dict):
     else:
         summary.engine_wins += 1
         game_stats["engine_wins"] += 1
-        if result.get("termination_reason") == "llm_forfeit":
+        if result.get("termination_reason") in {"llm_forfeit", "llm_request_error"}:
             summary.forfeits += 1
 
 
@@ -274,6 +294,7 @@ def finalize_summary(summary: BenchmarkSummary) -> dict:
             "draw": "0.5",
             "engine_win": "0.35 * survival_ratio, so longer losses earn more partial credit",
             "llm_forfeit": "0.0",
+            "llm_request_error": "0.0",
         },
         "by_game": by_game,
     }

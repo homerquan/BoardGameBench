@@ -10,7 +10,7 @@
           "name": "Gemma 4 8B (Ollama)",
           "model": "gemma4:latest",
           "rate_limit_rpm": 120,
-          "timeout_seconds": 600,
+          "timeout_seconds": 240,
           "extra_body": {
             "max_tokens": 64
           }
