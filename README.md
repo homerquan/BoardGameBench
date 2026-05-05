@@ -60,6 +60,8 @@ boardgamebench benchmark --model my-model -r 4
 
 ## Model Configs
 
+[** you can use GomokuBench's config directly**](https://github.com/homerquan/GomokuBench/tree/main/models)
+
 Model configs use the same OpenAI-compatible shape as GomokuBench:
 
 ```json
