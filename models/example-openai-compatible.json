@@ -1,0 +1,19 @@
+{
+  "provider": {
+    "openai-compatible": {
+      "name": "OpenAI-compatible endpoint",
+      "options": {
+        "baseURL": "https://api.openai.com/v1",
+        "apiKeyEnv": "OPENAI_API_KEY"
+      },
+      "models": {
+        "example-openai-compatible": {
+          "name": "Example OpenAI-compatible model",
+          "model": "gpt-5.5",
+          "rate_limit_rpm": 30,
+          "timeout_seconds": 120
+        }
+      }
+    }
+  }
+}
