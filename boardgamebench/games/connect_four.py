@@ -17,7 +17,7 @@ WINDOWS = (
 
 @dataclass(frozen=True)
 class ConnectFour:
-    spec: GameSpec = GameSpec("connect_four", "Connect Four", 4, 6)
+    spec: GameSpec = GameSpec("connect_four", "Connect Four", 4, 6, 42)
 
     def initial_state(self) -> GameState:
         return ConnectFourState(tuple(tuple(0 for _ in range(COLUMNS)) for _ in range(ROWS)), 1)

@@ -6,6 +6,7 @@ from boardgamebench.benchmark import BenchmarkLLMCallError, run_benchmark
 from boardgamebench.games import DEFAULT_CURRICULUM, GAME_FACTORIES, get_game_factory
 from boardgamebench.games.search import choose_engine_move
 from boardgamebench.progress import BenchmarkProgress
+from boardgamebench.report import generate_report
 
 
 def run_cli(argv=None) -> int:
@@ -17,6 +18,9 @@ def run_cli(argv=None) -> int:
         return play_engine(args)
     if args.command == "benchmark":
         return benchmark_command(args)
+    if args.command == "report":
+        generate_report()
+        return 0
     parser.print_help()
     return 1
 
@@ -43,11 +47,13 @@ def build_parser() -> argparse.ArgumentParser:
         "-r",
         "--rounds",
         type=int,
-        default=None,
-        help="Rounds per selected game. Defaults to each game's curriculum setting.",
+        default=10,
+        help="Rounds per selected game. Default: 10.",
     )
     benchmark_parser.add_argument("-v", "--verbose", action="store_true", help="Print boards and moves.")
     benchmark_parser.add_argument("--debug-http", action="store_true", help="Print provider HTTP error detail.")
+
+    subparsers.add_parser("report", help="Report benchmark results.")
     return parser
 
 
@@ -56,7 +62,10 @@ def list_games() -> int:
     for game_id, factory in GAME_FACTORIES.items():
         spec = factory.spec
         marker = "*" if game_id in DEFAULT_CURRICULUM else " "
-        print(f"{marker} {game_id}: {spec.name}, default rounds={spec.default_rounds}, engine depth={spec.oracle_depth}")
+        print(
+            f"{marker} {game_id}: {spec.name}, default rounds={spec.default_rounds}, "
+            f"engine depth={spec.oracle_depth}, max moves={spec.max_moves}"
+        )
     print("* = default curriculum")
     return 0
 
@@ -101,7 +110,7 @@ def benchmark_command(args) -> int:
     print(f"Saved benchmark to {output_path}")
     print(
         f"Score: {summary['normalized_score']} "
-        f"({summary['raw_score']}/{summary['max_score']}), "
+        f"({summary['raw_score']:.2f}/{summary['max_score']}), "
         f"LLM wins: {summary['llm_wins']}, "
         f"engine wins: {summary['engine_wins']}, "
         f"draws: {summary['draws']}"

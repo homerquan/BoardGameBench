@@ -20,8 +20,8 @@ class Othello:
     @property
     def spec(self) -> GameSpec:
         if self.size == 6:
-            return GameSpec("othello_6x6", "Othello 6x6", 4, 4)
-        return GameSpec("othello_8x8", "Othello 8x8", 2, 3)
+            return GameSpec("othello_6x6", "Othello 6x6", 4, 4, 38)
+        return GameSpec("othello_8x8", "Othello 8x8", 2, 3, 66)
 
     def initial_state(self) -> GameState:
         middle = self.size // 2

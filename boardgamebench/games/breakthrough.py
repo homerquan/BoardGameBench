@@ -11,7 +11,7 @@ FILES = "abcdef"
 
 @dataclass(frozen=True)
 class Breakthrough:
-    spec: GameSpec = GameSpec("breakthrough_6x6", "Breakthrough 6x6", 4, 4)
+    spec: GameSpec = GameSpec("breakthrough_6x6", "Breakthrough 6x6", 4, 4, 80)
 
     def initial_state(self) -> GameState:
         rows = []

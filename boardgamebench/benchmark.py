@@ -139,6 +139,7 @@ class BenchmarkRunner:
             outcome = "engine_win"
         else:
             outcome = "draw"
+        score = score_result(outcome, len(moves), factory.spec.max_moves, "terminal_position")
         return {
             "game_id": factory.spec.game_id,
             "game_name": factory.spec.name,
@@ -150,6 +151,9 @@ class BenchmarkRunner:
             "outcome": outcome,
             "winner": side_name(winner) if winner else "none",
             "termination_reason": "terminal_position",
+            "move_count": len(moves),
+            "max_moves": factory.spec.max_moves,
+            "score": score,
             "moves": moves,
             "final_board": state.render(),
         }
@@ -174,6 +178,7 @@ def move_record(player: str, side: int, move: Move, response: str | None = None,
 
 
 def forfeit_result(factory, round_number, llm_first, llm_side, engine_side, moves, state, error):
+    score = score_result("engine_win", len(moves), factory.spec.max_moves, "llm_forfeit")
     return {
         "game_id": factory.spec.game_id,
         "game_name": factory.spec.name,
@@ -185,8 +190,38 @@ def forfeit_result(factory, round_number, llm_first, llm_side, engine_side, move
         "winner": side_name(engine_side),
         "termination_reason": "llm_forfeit",
         "error": error,
+        "move_count": len(moves),
+        "max_moves": factory.spec.max_moves,
+        "score": score,
         "moves": moves,
         "final_board": state.render(),
+    }
+
+
+def score_result(outcome: str, move_count: int, max_moves: int, termination_reason: str) -> dict:
+    max_moves = max(1, int(max_moves))
+    move_count = max(0, int(move_count))
+    survival_ratio = min(1.0, move_count / max_moves)
+    speed_ratio = 1.0 - min(1.0, max(0, move_count - 1) / max(1, max_moves - 1))
+
+    if termination_reason == "llm_forfeit":
+        points = 0.0
+        formula = "forfeit"
+    elif outcome == "llm_win":
+        points = 0.75 + 0.25 * speed_ratio
+        formula = "win_speed_bonus"
+    elif outcome == "draw":
+        points = 0.5
+        formula = "draw"
+    else:
+        points = 0.35 * survival_ratio
+        formula = "loss_survival_credit"
+
+    return {
+        "points": round(points, 4),
+        "survival_ratio": round(survival_ratio, 4),
+        "speed_ratio": round(speed_ratio, 4),
+        "formula": formula,
     }
 
 
@@ -195,19 +230,19 @@ def update_summary(summary: BenchmarkSummary, result: dict):
     game_id = result["game_id"]
     game_stats = summary.by_game.setdefault(
         game_id,
-        {"games": 0, "llm_wins": 0, "engine_wins": 0, "draws": 0, "score": 0.0},
+        {"games": 0, "llm_wins": 0, "engine_wins": 0, "draws": 0, "score": 0.0, "moves": 0},
     )
+    points = float(result["score"]["points"])
     game_stats["games"] += 1
+    game_stats["moves"] += int(result.get("move_count", len(result.get("moves", []))))
+    summary.score += points
+    game_stats["score"] += points
     if result["outcome"] == "llm_win":
         summary.llm_wins += 1
-        summary.score += 1
         game_stats["llm_wins"] += 1
-        game_stats["score"] += 1
     elif result["outcome"] == "draw":
         summary.draws += 1
-        summary.score += 0.5
         game_stats["draws"] += 1
-        game_stats["score"] += 0.5
     else:
         summary.engine_wins += 1
         game_stats["engine_wins"] += 1
@@ -222,6 +257,7 @@ def finalize_summary(summary: BenchmarkSummary) -> dict:
         games = int(stats["games"])
         by_game[game_id] = {
             **stats,
+            "average_moves": round(float(stats["moves"]) / games, 2) if games else 0.0,
             "normalized_score": round(float(stats["score"]) / games * 100, 2) if games else 0.0,
         }
     return {
@@ -233,6 +269,12 @@ def finalize_summary(summary: BenchmarkSummary) -> dict:
         "raw_score": summary.score,
         "max_score": summary.games,
         "normalized_score": round(normalized, 2),
+        "scoring": {
+            "llm_win": "0.75 + 0.25 * speed_ratio, so faster wins score closer to 1.0",
+            "draw": "0.5",
+            "engine_win": "0.35 * survival_ratio, so longer losses earn more partial credit",
+            "llm_forfeit": "0.0",
+        },
         "by_game": by_game,
     }
 

@@ -11,7 +11,7 @@ DIRECTIONS = ((0, 1), (1, 0), (1, 1), (1, -1))
 
 @dataclass(frozen=True)
 class Gomoku:
-    spec: GameSpec = GameSpec("gomoku_19x19", "Gomoku 19x19", 2, 2)
+    spec: GameSpec = GameSpec("gomoku_19x19", "Gomoku 19x19", 2, 2, 361)
 
     def initial_state(self) -> GameState:
         return GomokuState(tuple(tuple(0 for _ in range(SIZE)) for _ in range(SIZE)), 1)

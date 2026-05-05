@@ -13,7 +13,7 @@ NEIGHBORS = ((-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0))
 
 @dataclass(frozen=True)
 class Hex:
-    spec: GameSpec = GameSpec("hex_7x7", "Hex 7x7", 2, 2)
+    spec: GameSpec = GameSpec("hex_7x7", "Hex 7x7", 2, 2, 49)
 
     def initial_state(self) -> GameState:
         return HexState(tuple(tuple(0 for _ in range(SIZE)) for _ in range(SIZE)), 1)

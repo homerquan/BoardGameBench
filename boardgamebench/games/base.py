@@ -17,6 +17,7 @@ class GameSpec:
     name: str
     default_rounds: int
     oracle_depth: int
+    max_moves: int = 100
 
 
 class GameState(ABC):

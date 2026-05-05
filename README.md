@@ -5,9 +5,13 @@ It is an extension of [GomokuBench](https://github.com/homerquan/GomokuBench), g
 
 Instead of scoring a model on one game, BoardGameBench runs the same model through several games and reports a normalized aggregate score:
 
-- win = 1 point
+- fast win = up to 1 point
+- slower win = at least 0.75 points
 - draw = 0.5 points
-- loss or illegal-move forfeit = 0 points
+- loss = up to 0.35 points based on how long the LLM survives
+- illegal-move forfeit = 0 points
+
+Each game has its own move horizon, so survival and speed are scored relative to that game's expected length. This means an LLM still earns credit for making a losing game last longer, while a winning LLM is rewarded for closing the game quickly.
 
 The current default curriculum follows the first strong multi-game set:
 
@@ -30,6 +34,7 @@ pip install .
 boardgamebench list-games
 boardgamebench play --game connect_four
 boardgamebench benchmark --model-file ./models/example-openai-compatible.json -r 2
+boardgamebench report
 ```
 
 After installation:
@@ -85,6 +90,12 @@ Run the default curriculum:
 boardgamebench benchmark --model my-model
 ```
 
+By default, this runs 10 rounds per game. Use `-r` or `--rounds` to choose a different number:
+
+```bash
+boardgamebench benchmark --model my-model -r 20
+```
+
 Run a subset:
 
 ```bash
@@ -109,10 +120,17 @@ Reports are saved in `benchmarks/<model>.json` and include:
 
 - model and provider metadata
 - aggregate score and per-game scores
+- per-round speed/survival scoring details
 - every move by the LLM and engine
 - raw LLM responses
 - final board states
 - a reasoning/API log path under `/tmp/boardgamebench`
+
+To print a leaderboard table from saved benchmark files:
+
+```bash
+boardgamebench report
+```
 
 ## Notes
 

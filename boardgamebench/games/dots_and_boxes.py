@@ -10,7 +10,7 @@ BOXES = 3
 
 @dataclass(frozen=True)
 class DotsAndBoxes:
-    spec: GameSpec = GameSpec("dots_and_boxes_3x3", "Dots and Boxes 3x3", 4, 4)
+    spec: GameSpec = GameSpec("dots_and_boxes_3x3", "Dots and Boxes 3x3", 4, 4, 24)
 
     def initial_state(self) -> GameState:
         h = tuple(tuple(0 for _ in range(BOXES)) for _ in range(BOXES + 1))
