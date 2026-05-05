@@ -35,6 +35,8 @@ Current 10-round-per-game Ollama results:
 | Nemotron 3 Super (Ollama) | 70 | 0 | 70 | 0 | 36 | 3.02/70 | 4.31 | 97.3 |
 | Gemma 4 8B (Ollama) | 70 | 0 | 70 | 0 | 60 | 0.71/70 | 1.01 | 71.2 |
 
+**nemotron 3 33B beat 120B is a surprise here.** Actually, nemotron3 33B is the only model who actually had win over master algorithm -- very impress
+
 ## Quick Start
 
 From this folder:
