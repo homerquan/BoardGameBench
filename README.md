@@ -25,6 +25,16 @@ The current default curriculum follows the first strong multi-game set:
 
 Each game has exact legal move generation, terminal-state detection, deterministic state updates, and a built-in alpha-beta style search opponent with game-specific evaluation. The engine is intentionally simple and auditable, so every result can be replayed from the saved JSON.
 
+## Benchmark Results
+
+Current 10-round-per-game Ollama results:
+
+| Model | Games | Wins | Losses | Draws | Forfeits | Raw Score | Normalized | BRI |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Nemotron 3 33B (Ollama) | 70 | 2 | 68 | 0 | 38 | 4.91/70 | 7.02 | 118.0 |
+| Nemotron 3 Super (Ollama) | 70 | 0 | 70 | 0 | 36 | 3.02/70 | 4.31 | 97.3 |
+| Gemma 4 8B (Ollama) | 70 | 0 | 70 | 0 | 60 | 0.71/70 | 1.01 | 71.2 |
+
 ## Quick Start
 
 From this folder:
