@@ -36,6 +36,16 @@ Current 10-round-per-game Ollama results:
 | Nemotron 3 Super (Ollama) | 70 | 0 | 70 | 0 | 36 | 3.02/70 | 4.31 | 97.3 |
 | Gemma 4 8B (Ollama) | 70 | 0 | 70 | 0 | 60 | 0.71/70 | 1.01 | 71.2 |
 
+OpenRouter free-tier results, `2026.10.16` (`boardgamebench benchmark --model <name> -r 10`, 70 games per model, default curriculum):
+
+| Model | Games | Wins | Losses | Draws | Forfeits | Raw Score | Normalized | BRI |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Inkling Small (Free) | 70 | 2 | 67 | 1 | 3 | 15.22/70 | 21.74 | 255.2 |
+| LFM 2.5 2.6B (Free) | 70 | 1 | 69 | 0 | 24 | 7.55/70 | 10.79 | 150.7 |
+
+Still running at time of writing: `inkling-free` (in progress), `nemotron-3.5-super-vl-free` (queued), `nemotron-3-ultra-550b-free` (queued; the same model timed out on every GomokuBench request, so it may also fail here).
+Model configs are saved in `models/` and reports in `benchmarks/`; re-run `boardgamebench report` to refresh the table above once the remaining runs finish.
+
 **Nemotron 3 33B beating the 120B model is a real surprise here.**
 
 What’s especially impressive is that Nemotron 3 33B appears to be the only model that actually achieved a win over the master algorithm.

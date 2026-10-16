@@ -58,7 +58,12 @@ class LLMPlayer:
 
     def _chat(self, prompt: str, attempt: int) -> str:
         api_key = self.model_config.get_api_key()
-        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "HTTP-Referer": "https://opencode.ai",
+            "X-Title": "BoardGameBench",
+        }
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
         payload = {
@@ -79,21 +84,49 @@ class LLMPlayer:
         return content
 
     def _post_json(self, endpoint: str, headers: dict[str, str], payload: dict) -> str:
+        import sys as _sys
+        import time as _time
+
         data = json.dumps(payload).encode("utf-8")
-        http_request = request.Request(endpoint, data=data, headers=headers, method="POST")
-        try:
-            with request.urlopen(http_request, timeout=self.model_config.timeout_seconds) as response:
-                return response.read().decode("utf-8")
-        except error.HTTPError as exc:
-            detail = ""
-            if self.debug_http:
-                try:
-                    detail = "\n" + exc.read().decode("utf-8")
-                except Exception:
-                    detail = "\n<failed to read response body>"
-            raise LLMRequestError(f"Request to {endpoint} failed: {exc}{detail}") from exc
-        except (error.URLError, HTTPException, OSError) as exc:
-            raise LLMRequestError(f"Request to {endpoint} failed: {exc}") from exc
+        max_retries = 6
+        last_error: Exception | None = None
+        for attempt_no in range(1, max_retries + 1):
+            http_request = request.Request(endpoint, data=data, headers=headers, method="POST")
+            try:
+                with request.urlopen(http_request, timeout=self.model_config.timeout_seconds) as response:
+                    return response.read().decode("utf-8")
+            except error.HTTPError as exc:
+                last_error = exc
+                retryable = exc.code in (408, 425, 429, 500, 502, 503, 504)
+                if retryable and attempt_no < max_retries:
+                    wait = min(120, 10 * attempt_no)
+                    print(
+                        f"HTTP {exc.code} from LLM provider "
+                        f"(attempt {attempt_no}/{max_retries}), retrying in {wait}s...",
+                        file=_sys.stderr,
+                    )
+                    _time.sleep(wait)
+                    continue
+                detail = ""
+                if self.debug_http:
+                    try:
+                        detail = "\n" + exc.read().decode("utf-8")
+                    except Exception:
+                        detail = "\n<failed to read response body>"
+                raise LLMRequestError(f"Request to {endpoint} failed: {exc}{detail}") from exc
+            except (error.URLError, HTTPException, OSError) as exc:
+                last_error = exc
+                if attempt_no < max_retries:
+                    wait = min(120, 10 * attempt_no)
+                    print(
+                        f"Connection error ({exc}) "
+                        f"(attempt {attempt_no}/{max_retries}), retrying in {wait}s...",
+                        file=_sys.stderr,
+                    )
+                    _time.sleep(wait)
+                    continue
+                raise LLMRequestError(f"Request to {endpoint} failed: {exc}") from exc
+        raise LLMRequestError(f"Request to {endpoint} failed after retries: {last_error}") from last_error
 
     def _log(self, prompt: str, attempt: int, response_body: str, message: dict, reasoning: str):
         if not self.reasoning_log_path:
