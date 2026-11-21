@@ -46,6 +46,12 @@ OpenRouter free-tier results, `2026.10.16` (`boardgamebench benchmark --model <n
 Still running at time of writing: `inkling-free` (in progress), `nemotron-3.5-super-vl-free` (queued), `nemotron-3-ultra-550b-free` (queued; the same model timed out on every GomokuBench request, so it may also fail here).
 Model configs are saved in `models/` and reports in `benchmarks/`; re-run `boardgamebench report` to refresh the table above once the remaining runs finish.
 
+Docker Model Runner results (`MODEL_RUNNER_HOST=http://127.0.0.1:12438`, `boardgamebench benchmark --model <name> -r 10`, 70 games per model, default curriculum):
+
+| Model | Games | Wins | Losses | Draws | Forfeits | Raw Score | Normalized | BRI |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Inkling 2 Mini (Docker, Q4_K_M) | 70 | 0 | 70 | 0 | 60 | 0.71/70 | 1.01 | 71.2 |
+
 **Nemotron 3 33B beating the 120B model is a real surprise here.**
 
 What’s especially impressive is that Nemotron 3 33B appears to be the only model that actually achieved a win over the master algorithm.

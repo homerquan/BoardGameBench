@@ -210,7 +210,7 @@ def parse_chat_response(response_body: str) -> tuple[dict, str]:
         payload = json.loads(response_body)
         choice = payload["choices"][0]
         message = choice.get("message") or {"content": choice.get("text", "")}
-        reasoning = message.get("reasoning") or choice.get("reasoning", "")
+        reasoning = message.get("reasoning") or message.get("reasoning_content") or choice.get("reasoning", "")
         return message, reasoning
     except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
         raise LLMRequestError(f"Unexpected model response: {response_body}") from exc
